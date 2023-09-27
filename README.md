@@ -361,3 +361,52 @@ class MyHomePage extends StatelessWidget {
   child: NavigationRail(
     extended: constraints.maxWidth > 600,
   ```
+
+## Widget lifecycle callbacks
+
+- `createState()`: Called in stateful objects. Returns a mutable state object for the widget
+- `initState()`: Called when a stateful widget is inserted into the widget tree for the first time. Used for one-time initialization tasks such as setting up listeners.
+- `build()`: Defines a widget's widget tree. The most important lifecycle method. It can be called from another callback if a rebuild is necessary.
+- `didUpdateWidget()`: Called when a widget is updated. It provides the old widget as an argument so you can compare the old and new widgets.
+- `didChangeDependencies()`: Called when a widget's dependencies (eg InheritedWidget) have changed
+- `deactivate()`: Called when a widget is removed from the widget tree. Used to clean up resources
+- `dispose()`: Called when a widget is removed from the tree permanently. This is the last callback for `StatefulWidget`
+
+## State management
+
+- `InheritedWidget`: Allows us to pass data from a parent widget to its descendants without having to pass data explicitly through each descendant. Used for immutable data such as themes. The shared data is immutable- the widget must be recreated in order to update the data.
+
+- `ChangeNotifier`: Similar to `InheritedWidget` but used for mutable data such as global state.
+
+## Important widgets
+
+- **Container**: To add padding and margin to children
+- **Row**: For horizontal alignment
+- **Column**: For vertical alignment
+- **ListView**: Scrollable list
+- **Stack**: To overlay widgets on top of each other (z axis)
+- **Text**
+- **Image**
+- **Button widgets**: `ElevatedButton`, `TextButton`, `OutlinedButton`
+- **TextField**: For text input
+- **AppBar**: Top app bar with buttons and navigation
+- **Drawer**: App bar's drawer
+- **AlertDialog**: Popup dialog
+- **BottomSheet**: Popup connected to the bottom for data selection
+- **Card**
+- **Icon**
+- **Spacer**: Flexible space that expands to take up available space
+- **AspectRatio**: Enforces aspect ratio of its child, useful for images
+- **Divider**: Horizontal line to separate widgets
+- **ClipRRect**, **ClipOval**: Widget for clipping children into rounded rectangles and ovals respectively
+- **Hero**: For hero animations, where a widget moves smoothly from one screen to another
+- **Expanded**: Greedy area, takes up available space
+- **Flex**: Displays children in a one dimensional array
+- **Flexible**: Used as a direct child of `Row`, `Column` or `Flex`. `Flexible` children occupy space pro-rata according to `flex` factor. Eg if one child has flex 2 and the other has 1, they take space in 2:1 ratio
+
+### Tricks
+
+- If main axis (horizontal or vertical) is known in advance, use `Row` or `Column` instead of `Flex`
+- `Flex` does not scroll. Use `ListView` for scrolling
+- `Flex` does not wrap. Use `Wrap` for wrapping
+- If you only have one child, use `Align` or `Center` instead of `Flex`, `Row` or `Column`
