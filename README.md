@@ -197,3 +197,167 @@ class BigCard extends StatelessWidget {
             BigCard(pair: pair),
 ```
 
+## Navigation
+
+```dart
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          SafeArea(
+              child: NavigationRail(
+            extended: true,
+            destinations: [
+              NavigationRailDestination(
+                  icon: Icon(Icons.home), label: Text("Home")),
+              NavigationRailDestination(
+                  icon: Icon(Icons.favorite), label: Text("Favourites"))
+            ],
+            selectedIndex: 0,
+            onDestinationSelected: (value) {
+              print("selected $value");
+            },
+          )),
+          Expanded(
+              child: Container(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: GeneratorPage(),
+          ))
+        ],
+      ),
+    );
+  }
+}
+```
+
+- `SafeArea` ensures that children are not obscured by a notch or status bar
+- `extended: true` displays text alongside icons
+- `selectedIndex` sets the selected navigation destination
+- `onDestinationSelected()` handles clicks on destinations
+- `Expanded`: This is greedy area. It takes up all area available that is left free by the Navigation rail
+
+## Stateful widget
+
+- Allows us to store state in the widget itself, without having to use the global state.
+- Select widget name > refactor > stateful widget.
+
+  - Before
+
+  ```dart
+  class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+  ```
+
+  - After
+
+  ```dart
+  class MyHomePage extends StatefulWidget {
+    @override
+    State<MyHomePage> createState() => _MyHomePageState();
+  }
+
+  class _MyHomePageState extends State<MyHomePage> {
+    // Add state here
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+  ```
+
+- After adding state
+  - Only state variables should be inside `_MyHomePageState`. Since `page` depends on `selectedIndex` we put it inside `build()`
+  - `selectedIndex` must be updated in a callback wrapped by `setState()`. This causes the UI to refresh
+
+  ```dart
+  // Widget's build() function is moved to a new class
+  // Stateful widget only has a createState()
+  class MyHomePage extends StatefulWidget {
+    @override
+    State<MyHomePage> createState() => _MyHomePageState();
+  }
+
+  // Note the underscore- _MyHomePageState. Flutter compiler ensures that contents
+  // of this class remain private
+  class _MyHomePageState extends State<MyHomePage> {
+    // State variable
+    int selectedIndex = 0;
+
+    @override
+    Widget build(BuildContext context) {
+      // Obtain page based on state- do this inside build()
+      Widget page;
+      switch (selectedIndex) {
+        case 0:
+          page = GeneratorPage();
+          break;
+
+        case 1:
+          page = Placeholder();
+          break;
+
+        default:
+          throw UnimplementedError("no widget for $selectedIndex");
+      }
+
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+                child: NavigationRail(
+              extended: true,
+              destinations: [
+                NavigationRailDestination(
+                    icon: Icon(Icons.home), label: Text("Home")),
+                NavigationRailDestination(
+                    icon: Icon(Icons.favorite), label: Text("Favourites"))
+              ],
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (value) {
+                // Important- don't set value directly, but set inside setState()
+                setState(() {
+                  selectedIndex = value;
+                });
+              },
+            )),
+            Expanded(
+                child: Container(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: page,
+            ))
+          ],
+        ),
+      );
+    }
+  }
+  ```
+
+## Responsiveness
+
+- Flutter uses **logical pixels**. They are device independent and produce the same result independent of screen resolution. The app is automatically responsive, however we must handle `NavigationRail` expansion and contraction ourselves.
+- Wrap the `Scaffold` with `LayoutBuilder` to gain access to screen `constraints`. The `builder` callback is called every time the screen constraints change
+
+  - Before
+
+  ```dart
+  return Scaffold(
+    body: Row(
+      children: [
+  ```
+
+  - After
+
+  ```dart
+  return LayoutBuilder(builder: (context, constraints) {
+    return Scaffold(
+      body: Row(
+  ```
+
+  - Set NavigationRail > extended as
+
+  ```dart
+  child: NavigationRail(
+    extended: constraints.maxWidth > 600,
+  ```

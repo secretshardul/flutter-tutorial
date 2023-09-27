@@ -51,40 +51,101 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+// Widget's build() function is moved to a new class
+// Stateful widget only has a createState()
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+// Note the underscore- _MyHomePageState. Flutter compiler ensures that contents
+// of this class remain private
+class _MyHomePageState extends State<MyHomePage> {
+  // State variable
+  int selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    // Obtain page based on state- do this inside build()
+    Widget page;
+    switch (selectedIndex) {
+      case 0:
+        page = GeneratorPage();
+        break;
+
+      case 1:
+        page = FavouritesPage();
+        break;
+
+      default:
+        throw UnimplementedError("no widget for $selectedIndex");
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+                child: NavigationRail(
+              extended: constraints.maxWidth > 600,
+              destinations: [
+                NavigationRailDestination(
+                    icon: Icon(Icons.home), label: Text("Home")),
+                NavigationRailDestination(
+                    icon: Icon(Icons.favorite), label: Text("Favourites"))
+              ],
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (value) {
+                // Important- don't set value directly, but set inside setState()
+                setState(() {
+                  selectedIndex = value;
+                });
+              },
+            )),
+            Expanded(
+                child: Container(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: page,
+            ))
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Watch state changes
     var appState = context.watch<MyAppState>();
     var pair = appState.current;
 
-    return Scaffold(
-      // Nest Column inside Center to center horizontally
-      body: Center(
-        child: Column(
-          // Center vertically
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            BigCard(pair: pair),
-            // Add padding
-            SizedBox(height: 60),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LikeButton(appState: appState),
-                SizedBox(width: 10),
-                ElevatedButton(
-                    onPressed: () {
-                      print("button pressed");
+    // Do not repeat scaffold in nested widget, otherwise theme won't apply
+    return Center(
+      child: Column(
+        // Center vertically
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BigCard(pair: pair),
+          // Add padding
+          SizedBox(height: 60),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LikeButton(appState: appState),
+              SizedBox(width: 10),
+              ElevatedButton(
+                  onPressed: () {
+                    print("button pressed");
 
-                      // Update word
-                      appState.getNext();
-                    },
-                    child: Text("Next")),
-              ],
-            ),
-          ],
-        ),
+                    // Update word
+                    appState.getNext();
+                  },
+                  child: Text("Next")),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -147,6 +208,31 @@ class BigCard extends StatelessWidget {
             // Semantics label is used for talkback. It is not visible to users
             semanticsLabel: "${pair.first} ${pair.second}"),
       ),
+    );
+  }
+}
+
+class FavouritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    MyAppState appState = context.watch<MyAppState>();
+
+    var favouritesList = appState.favourites
+        .map((e) => ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text(e.asLowerCase),
+            ))
+        .toList();
+
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('You have '
+              '${appState.favourites.length} favorites:'),
+        ),
+        ...favouritesList,
+      ],
     );
   }
 }
